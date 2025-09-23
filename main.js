@@ -1,0 +1,1 @@
+window.addEventListener('DOMContentLoaded',()=>{console.log('Attendance System Ready')});
