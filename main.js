@@ -677,7 +677,4 @@ class AttendanceSystem {
 // ให้ AttendanceSystem เป็น global เพื่อให้สคริปต์ใน index.html เรียกใช้ได้
 window.attendanceSystem = new AttendanceSystem();
 
-// Initialize the system when page loads
-window.addEventListener('DOMContentLoaded', () => {
-  new AttendanceSystem();
-});
+
