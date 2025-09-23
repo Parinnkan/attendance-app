@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบลงเวลาทำงาน</title>
-  <link rel="stylesheet" href="style.css" />
+  <!-- Modern Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Face API JS -->
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
+
 <body>
   <div class="container">
     <div class="header">
       <h1>ลงเวลาทำงาน</h1>
-      <p class="status-text">เครือข่าย <span id="networkStatus">ตรวจสอบ...</span></p>
+      <p class="status-text">เครือข่าย&nbsp;<span id="networkStatus">ตรวจสอบ...</span></p>
     </div>
-
     <div class="main-tabs">
       <button class="main-tab active" data-tab="attendance">ลงเวลา</button>
       <button class="main-tab" data-tab="history">ประวัติ</button>
     </div>
-
     <div class="main-content">
       <div id="attendanceTab">
         <div id="alertContainer"></div>
@@ -40,21 +43,41 @@
         </div>
         <div class="info-section">
           <div class="info-grid">
-            <div class="info-item"><h3>วันที่</h3><p id="currentDate">-</p></div>
-            <div class="info-item"><h3>เวลา</h3><p id="currentTime">-</p></div>
-            <div class="info-item"><h3>สถานะ</h3><p id="currentStatus">ยังไม่ได้ลงเวลา</p></div>
-            <div class="info-item"><h3>การตรวจสอบ</h3><p id="faceStatus">ยังไม่ได้ตรวจสอบ</p></div>
+            <div class="info-item">
+              <h3>วันที่</h3>
+              <p id="currentDate">-</p>
+            </div>
+            <div class="info-item">
+              <h3>เวลา</h3>
+              <p id="currentTime">-</p>
+            </div>
+            <div class="info-item">
+              <h3>สถานะ</h3>
+              <p id="currentStatus">ยังไม่ได้ลงเวลา</p>
+            </div>
+            <div class="info-item">
+              <h3>การตรวจสอบ</h3>
+              <p id="faceStatus">ยังไม่ได้ตรวจสอบ</p>
+            </div>
           </div>
+
           <div class="location-info">
             <h3>ข้อมูลตำแหน่ง</h3>
             <p id="locationInfo">กำลังหาตำแหน่ง...</p>
             <p id="locationAccuracy"></p>
           </div>
+
           <div class="daily-summary" id="dailySummary">
             <h3>สรุปวันนี้</h3>
             <div class="summary-grid">
-              <div class="summary-item"><span class="summary-label">เข้างาน:</span><span class="summary-value" id="todayCheckIn">-</span></div>
-              <div class="summary-item"><span class="summary-label">ออกงาน:</span><span class="summary-value" id="todayCheckOut">-</span></div>
+              <div class="summary-item">
+                <span class="summary-label">เข้างาน:</span>
+                <span class="summary-value" id="todayCheckIn">-</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">ออกงาน:</span>
+                <span class="summary-value" id="todayCheckOut">-</span>
+              </div>
             </div>
           </div>
         </div>
@@ -73,20 +96,48 @@
     </div>
   </div>
 
-  <!-- Work Note Modal -->
-  <div id="workNoteModal" class="modal" aria-hidden="true">
-    <div class="modal-backdrop"></div>
-    <div class="modal-card">
-      <h3 id="workNoteTitle">สรุปงานที่ทำวันนี้</h3>
-      <p class="modal-sub">กรุณาพิมพ์สิ่งที่คุณทำงานวันนี้เพื่อประกอบการลงเวลาออกงาน</p>
-      <textarea id="workNoteInput" rows="6"></textarea>
-      <div class="modal-actions">
-        <button id="workNoteCancel" class="btn secondary">ยกเลิก</button>
-        <button id="workNoteSave" class="btn primary">บันทึกและออกงาน</button>
-      </div>
-    </div>
-  </div>
-
   <script src="main.js"></script>
+  <script>
+    // Main tab logic
+    (function() {
+      function setActiveMainTab(tab) {
+        document.querySelectorAll('.main-tab').forEach(btn => btn.classList.remove('active'));
+        tab.classList.add('active');
+      }
+      function showTab(tabName) {
+        document.getElementById('attendanceTab').style.display = tabName === 'attendance' ? '' : 'none';
+        document.getElementById('historyTab').style.display = tabName === 'history' ? '' : 'none';
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.main-tab').forEach(tab => {
+          tab.addEventListener('click', function() {
+            setActiveMainTab(this);
+            showTab(this.getAttribute('data-tab'));
+          });
+        });
+      });
+    })();
+    // History sub-tab logic (เหมือนเดิม)
+    (function() {
+      function setActiveTab(tab) {
+        document.querySelectorAll('.history-tab').forEach(btn => btn.classList.remove('active'));
+        tab.classList.add('active');
+      }
+      function filterHistory(type) {
+        if (window.attendanceSystem && window.attendanceSystem.loadAttendanceHistory) {
+          window.attendanceSystem.loadAttendanceHistory(type);
+        }
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.history-tab').forEach(tab => {
+          tab.addEventListener('click', function() {
+            setActiveTab(this);
+            filterHistory(this.getAttribute('data-type'));
+          });
+        });
+      });
+    })();
+  </script>
 </body>
+
 </html>
