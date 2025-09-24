@@ -1,4 +1,4 @@
-/* style.css - extracted from index.html */
+/* style.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Prompt:wght@400;500;600&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
 body{
@@ -61,7 +61,7 @@ body{
 .main-tabs{display:flex;gap:8px;margin:0 0 20px 0}
 .main-tab{flex:1 1 0;background:#e5e7eb;border:none;border-radius:8px 8px 0 0;padding:14px 0;font-size:1.1rem;color:#374151;font-family:inherit;font-weight:600;cursor:pointer;transition:background .2s,color .2s;outline:none}
 .main-tab.active{background:#fff;color:#10b981;border-bottom:2px solid #10b981;z-index:2}
-/* Success Notification Styles */
+/* Success Notification */
 .success-notification{background:linear-gradient(135deg,#10b981,#059669);color:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 8px 25px rgba(16,185,129,.4);display:flex;align-items:center;gap:12px;transition:.3s;border:1px solid rgba(255,255,255,.2)}
 .notification-icon{font-size:24px;animation:bounce 1s ease-in-out}
 .notification-content h3{margin:0 0 4px 0;font-size:16px;font-weight:600}
@@ -74,6 +74,18 @@ body{
 .summary-item{display:flex;flex-direction:column;text-align:center;padding:12px;background:#fff;border-radius:6px;border:1px solid #e5e7eb}
 .summary-label{font-size:12px;color:#6b7280;margin-bottom:4px}
 .summary-value{font-size:14px;font-weight:600;color:#374151}
+/* Modal สำหรับบันทึกงานตอนออกงาน */
+.modal{position:fixed;inset:0;z-index:2000}
+.modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+.modal-dialog{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,92vw);background:#fff;border-radius:12px;padding:16px;border:1px solid #e5e7eb;box-shadow:0 10px 30px rgba(0,0,0,.15)}
+.modal-title{font-size:1.1rem;margin-bottom:6px;font-weight:600;color:#111827}
+.modal-subtitle{font-size:.9rem;margin:0 0 8px 0;color:#6b7280}
+.modal-textarea{width:100%;border:1px solid #e5e7eb;border-radius:8px;padding:10px;resize:vertical;font-family:inherit;font-size:.95rem;min-height:120px}
+.modal-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.modal-btn{padding:10px 12px;border-radius:8px;border:none;background:#e5e7eb;color:#374151;cursor:pointer}
+.modal-btn.primary{background:#10b981;color:#fff}
+.modal-btn.secondary{background:#f3f4f6}
+.modal-hint{margin-top:6px;font-size:.8rem;color:#6b7280;text-align:right}
 @media (max-width:480px){
   .container{max-width:100%}
   .header{padding:16px 12px}
