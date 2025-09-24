@@ -13,14 +13,70 @@
     <div class="header">
       <h1>ลงเวลาทำงาน</h1>
       <p class="status-text">เครือข่าย&nbsp;<span id="networkStatus">ตรวจสอบ...</span></p>
+
+      <!-- User bar -->
+      <div id="userBar" class="user-bar" style="display:none;">
+        <div>
+          <span id="currentUserName" class="user-name">-</span>
+          <span id="currentUserRole" class="role-badge">-</span>
+        </div>
+        <button id="logoutBtn" class="btn btn-ghost">ออกจากระบบ</button>
+      </div>
     </div>
 
-    <div class="main-tabs">
+    <!-- AUTH SECTION -->
+    <div id="authSection" class="auth-section">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">เข้าสู่ระบบ</button>
+        <button class="auth-tab" data-tab="register">ลงทะเบียน</button>
+      </div>
+
+      <div id="loginPanel">
+        <div id="authAlert"></div>
+        <div class="form-grid">
+          <div class="form-item">
+            <label>อีเมล</label>
+            <input id="loginEmail" type="email" placeholder="your@email.com">
+          </div>
+          <div class="form-item">
+            <label>รหัสผ่าน</label>
+            <input id="loginPassword" type="password" placeholder="รหัสผ่าน">
+          </div>
+        </div>
+        <button id="loginBtn" class="btn w-full">เข้าสู่ระบบ</button>
+        <p class="hint mt-2">แอดมินเริ่มต้น: <code>admin</code> / <code>admin</code></p>
+      </div>
+
+      <div id="registerPanel" style="display:none;">
+        <div id="regAlert"></div>
+        <div class="form-grid">
+          <div class="form-item">
+            <label>ชื่อ</label>
+            <input id="regFirstName" type="text" placeholder="ชื่อ">
+          </div>
+          <div class="form-item">
+            <label>สกุล</label>
+            <input id="regLastName" type="text" placeholder="นามสกุล">
+          </div>
+          <div class="form-item">
+            <label>อีเมล</label>
+            <input id="regEmail" type="email" placeholder="your@email.com">
+          </div>
+          <div class="form-item">
+            <label>รหัสผ่าน</label>
+            <input id="regPassword" type="password" placeholder="อย่างน้อย 6 ตัวอักษร">
+          </div>
+        </div>
+        <button id="registerBtn" class="btn w-full">ลงทะเบียนผู้ใช้</button>
+      </div>
+    </div>
+
+    <div class="main-tabs" id="appTabs" style="display:none;">
       <button class="main-tab active" data-tab="attendance">ลงเวลา</button>
       <button class="main-tab" data-tab="history">ประวัติ</button>
     </div>
 
-    <div class="main-content">
+    <div class="main-content" id="appContent" style="display:none;">
       <!-- TAB: ลงเวลา -->
       <div id="attendanceTab">
         <div id="alertContainer"></div>
@@ -124,6 +180,26 @@
   <script src="main.js"></script>
 
   <script>
+    // Auth tabs
+    (function () {
+      function setActiveAuthTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+        tab.classList.add('active');
+      }
+      function showAuth(name) {
+        document.getElementById('loginPanel').style.display = name==='login' ? '' : 'none';
+        document.getElementById('registerPanel').style.display = name==='register' ? '' : 'none';
+      }
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+          tab.addEventListener('click', function(){
+            setActiveAuthTab(this);
+            showAuth(this.getAttribute('data-tab'));
+          });
+        });
+      });
+    })();
+
     // Main tab switch
     (function () {
       function setActiveMainTab(tab) {
@@ -148,7 +224,7 @@
     (function () {
       function setActiveTab(tab) {
         document.querySelectorAll('.history-tab').forEach(btn => btn.classList.remove('active'));
-        tab.classList.add('active');
+        tab.addEventListener; tab.classList.add('active');
       }
       function getSelectedType() {
         const active = document.querySelector('.history-tab.active');
@@ -165,7 +241,8 @@
       document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.history-tab').forEach(tab => {
           tab.addEventListener('click', function () {
-            setActiveTab(this);
+            document.querySelectorAll('.history-tab').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
             reload();
           });
         });
