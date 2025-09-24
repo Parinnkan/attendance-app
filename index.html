@@ -1,30 +1,30 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ระบบลงเวลาทำงาน</title>
-  <!-- Modern Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <!-- Face API JS -->
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
-
 <body>
   <div class="container">
     <div class="header">
       <h1>ลงเวลาทำงาน</h1>
       <p class="status-text">เครือข่าย&nbsp;<span id="networkStatus">ตรวจสอบ...</span></p>
     </div>
+
     <div class="main-tabs">
       <button class="main-tab active" data-tab="attendance">ลงเวลา</button>
       <button class="main-tab" data-tab="history">ประวัติ</button>
     </div>
+
     <div class="main-content">
+      <!-- TAB: ลงเวลา -->
       <div id="attendanceTab">
         <div id="alertContainer"></div>
+
         <div class="camera-section">
           <div class="camera-container">
             <video id="video" autoplay muted></video>
@@ -37,27 +37,25 @@
             <button class="btn check-out" id="checkOutBtn" disabled>ออกงาน</button>
           </div>
         </div>
+
         <div class="loading" id="loadingIndicator">
           <div class="spinner"></div>
           <p>กำลังประมวลผล...</p>
         </div>
+
         <div class="info-section">
           <div class="info-grid">
             <div class="info-item">
-              <h3>วันที่</h3>
-              <p id="currentDate">-</p>
+              <h3>วันที่</h3><p id="currentDate">-</p>
             </div>
             <div class="info-item">
-              <h3>เวลา</h3>
-              <p id="currentTime">-</p>
+              <h3>เวลา</h3><p id="currentTime">-</p>
             </div>
             <div class="info-item">
-              <h3>สถานะ</h3>
-              <p id="currentStatus">ยังไม่ได้ลงเวลา</p>
+              <h3>สถานะ</h3><p id="currentStatus">ยังไม่ได้ลงเวลา</p>
             </div>
             <div class="info-item">
-              <h3>การตรวจสอบ</h3>
-              <p id="faceStatus">ยังไม่ได้ตรวจสอบ</p>
+              <h3>การตรวจสอบ</h3><p id="faceStatus">ยังไม่ได้ตรวจสอบ</p>
             </div>
           </div>
 
@@ -82,6 +80,8 @@
           </div>
         </div>
       </div>
+
+      <!-- TAB: ประวัติ -->
       <div id="historyTab" style="display:none;">
         <div class="history-section">
           <h3>ประวัติการลงเวลา</h3>
@@ -90,6 +90,15 @@
             <button class="history-tab" data-type="check-in">เข้างาน</button>
             <button class="history-tab" data-type="check-out">ออกงาน</button>
           </div>
+
+          <!-- ตัวกรองวันที่ -->
+          <div class="history-filters">
+            <label for="historyDate" class="history-date-label">เลือกวันที่:</label>
+            <input type="date" id="historyDate" class="history-date-input" />
+            <button class="history-action" id="historyToday">วันนี้</button>
+            <button class="history-action secondary" id="historyClear">ล้าง</button>
+          </div>
+
           <div id="attendanceHistory"></div>
         </div>
       </div>
@@ -97,9 +106,10 @@
   </div>
 
   <script src="main.js"></script>
+
   <script>
-    // Main tab logic
-    (function() {
+    // Main tab switch
+    (function () {
       function setActiveMainTab(tab) {
         document.querySelectorAll('.main-tab').forEach(btn => btn.classList.remove('active'));
         tab.classList.add('active');
@@ -108,36 +118,58 @@
         document.getElementById('attendanceTab').style.display = tabName === 'attendance' ? '' : 'none';
         document.getElementById('historyTab').style.display = tabName === 'history' ? '' : 'none';
       }
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.main-tab').forEach(tab => {
-          tab.addEventListener('click', function() {
+          tab.addEventListener('click', function () {
             setActiveMainTab(this);
             showTab(this.getAttribute('data-tab'));
           });
         });
       });
     })();
-    // History sub-tab logic (เหมือนเดิม)
-    (function() {
+
+    // History sub-tab + date filter
+    (function () {
       function setActiveTab(tab) {
         document.querySelectorAll('.history-tab').forEach(btn => btn.classList.remove('active'));
         tab.classList.add('active');
       }
-      function filterHistory(type) {
+      function getSelectedType() {
+        const active = document.querySelector('.history-tab.active');
+        return active ? active.getAttribute('data-type') : 'all';
+      }
+      function reload() {
+        const type = getSelectedType();
+        const dateInput = document.getElementById('historyDate');
+        const dateStr = dateInput && dateInput.value ? dateInput.value : null;
         if (window.attendanceSystem && window.attendanceSystem.loadAttendanceHistory) {
-          window.attendanceSystem.loadAttendanceHistory(type);
+          window.attendanceSystem.loadAttendanceHistory(type, dateStr);
         }
       }
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.history-tab').forEach(tab => {
-          tab.addEventListener('click', function() {
+          tab.addEventListener('click', function () {
             setActiveTab(this);
-            filterHistory(this.getAttribute('data-type'));
+            reload();
           });
+        });
+
+        const dateInput = document.getElementById('historyDate');
+        const btnToday = document.getElementById('historyToday');
+        const btnClear = document.getElementById('historyClear');
+
+        if (dateInput) dateInput.addEventListener('change', reload);
+        if (btnToday) btnToday.addEventListener('click', () => {
+          const tz = new Date().getTimezoneOffset() * 60000;
+          dateInput.value = new Date(Date.now() - tz).toISOString().slice(0, 10);
+          reload();
+        });
+        if (btnClear) btnClear.addEventListener('click', () => {
+          dateInput.value = '';
+          reload();
         });
       });
     })();
   </script>
 </body>
-
 </html>
