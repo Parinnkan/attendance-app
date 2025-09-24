@@ -47,6 +47,66 @@ class AttendanceDB {
 }
 
 class AttendanceSystem {
+  // ====== ฟังก์ชัน Modal เพื่อบันทึกงานตอนออกงาน ======
+  openCheckoutNotesModal() {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('notesModal');
+      const textarea = document.getElementById('checkoutNotes');
+      const btnSave = document.getElementById('saveAndCheckout');
+      const btnSkip = document.getElementById('skipAndCheckout');
+      const btnCancel = document.getElementById('cancelCheckout');
+      const counter = document.getElementById('notesCount');
+      if (!modal) { resolve({action:'skip', notes:''}); return; }
+
+      textarea.value = '';
+      counter.textContent = '0';
+      modal.style.display = 'block';
+
+      const onInput = () => counter.textContent = String(textarea.value.length);
+      textarea.addEventListener('input', onInput);
+
+      const cleanup = () => {
+        modal.style.display = 'none';
+        textarea.removeEventListener('input', onInput);
+        btnSave.onclick = btnSkip.onclick = btnCancel.onclick = null;
+      };
+
+      btnSave.onclick = () => { const notes = textarea.value.trim(); cleanup(); resolve({action:'save', notes}); };
+      btnSkip.onclick = () => { cleanup(); resolve({action:'skip', notes:''}); };
+      btnCancel.onclick = () => { cleanup(); resolve({action:'cancel', notes:null}); };
+    });
+  }
+  async proceedCheckout(notes='') {
+    this.showLoading(true);
+    this.showAlert('กำลังบันทึกการออกงาน...', 'info');
+
+    const faceImage = await this.captureFaceImage();
+    setTimeout(async () => {
+      const attendanceData = {
+        type: 'check-out',
+        timestamp: new Date().toISOString(),
+        location: this.currentLocation,
+        faceDetected: this.isFaceDetected,
+        faceImage,
+        detectionMethod: this.faceApiLoaded ? 'face-api.js' : 'simulation',
+        notes: notes || ''
+      };
+      await this.db.addRecord(attendanceData);
+      this.isCheckedIn = false;
+      this.updateCurrentStatus('ออกงานแล้ว');
+
+      this.showSuccessNotification('✅ ลงเวลาออกงานสำเร็จ!', `เวลา: ${new Date().toLocaleTimeString('th-TH')}`);
+      this.checkOutBtn.style.background = '#ef4444';
+      this.checkOutBtn.textContent = '✓ ออกงานสำเร็จ';
+      setTimeout(() => { this.checkOutBtn.style.background = ''; this.checkOutBtn.textContent = 'ออกงาน'; }, 3000);
+
+      this.loadAttendanceHistory();
+      this.updateDailySummary();
+      this.showLoading(false);
+    }, 2000);
+  }
+  // =====================================================
+
   constructor() {
     this.video = document.getElementById('video');
     this.faceOverlay = document.getElementById('faceOverlay');
@@ -314,10 +374,12 @@ class AttendanceSystem {
       await this.db.addRecord(attendanceData);
       this.isCheckedIn = true;
       this.updateCurrentStatus('เข้างานแล้ว');
+
       this.showSuccessNotification('✅ ลงเวลาเข้างานสำเร็จ!', `เวลา: ${new Date().toLocaleTimeString('th-TH')}`);
       this.checkInBtn.style.background = '#10b981';
       this.checkInBtn.textContent = '✓ เข้างานสำเร็จ';
       setTimeout(() => { this.checkInBtn.style.background = ''; this.checkInBtn.textContent = 'เข้างาน'; }, 3000);
+
       this.loadAttendanceHistory();
       this.updateDailySummary();
       this.showLoading(false);
@@ -328,30 +390,10 @@ class AttendanceSystem {
     if (!this.isFaceDetected) { this.showAlert('กรุณาตรวจสอบใบหน้าก่อน', 'warning'); return; }
     if (!this.currentLocation) { this.showAlert('กรุณารอการตรวจสอบตำแหน่ง', 'warning'); return; }
 
-    this.showLoading(true);
-    this.showAlert('กำลังบันทึกการออกงาน...', 'info');
-
-    const faceImage = await this.captureFaceImage();
-    setTimeout(async () => {
-      const attendanceData = {
-        type: 'check-out',
-        timestamp: new Date().toISOString(),
-        location: this.currentLocation,
-        faceDetected: this.isFaceDetected,
-        faceImage,
-        detectionMethod: this.faceApiLoaded ? 'face-api.js' : 'simulation'
-      };
-      await this.db.addRecord(attendanceData);
-      this.isCheckedIn = false;
-      this.updateCurrentStatus('ออกงานแล้ว');
-      this.showSuccessNotification('✅ ลงเวลาออกงานสำเร็จ!', `เวลา: ${new Date().toLocaleTimeString('th-TH')}`);
-      this.checkOutBtn.style.background = '#ef4444';
-      this.checkOutBtn.textContent = '✓ ออกงานสำเร็จ';
-      setTimeout(() => { this.checkOutBtn.style.background = ''; this.checkOutBtn.textContent = 'ออกงาน'; }, 3000);
-      this.loadAttendanceHistory();
-      this.updateDailySummary();
-      this.showLoading(false);
-    }, 2000);
+    // เปิดกล่องบันทึกก่อนออกงาน
+    const modalResult = await this.openCheckoutNotesModal();
+    if (modalResult.action === 'cancel') { return; }
+    await this.proceedCheckout(modalResult.notes);
   }
 
   async captureFaceImage() {
@@ -364,7 +406,7 @@ class AttendanceSystem {
     return canvas.toDataURL('image/jpeg', 0.85);
   }
 
-  // รองรับการกรองชนิด + วันที่ (YYYY-MM-DD)
+  // โหลดประวัติ: รองรับชนิด + วันที่ (YYYY-MM-DD)
   async loadAttendanceHistory(type = 'all', dateStr = null) {
     const historyContainer = document.getElementById('attendanceHistory');
     let history = [];
@@ -410,6 +452,7 @@ class AttendanceSystem {
           <p><strong>ตำแหน่ง:</strong> ${record.location.latitude.toFixed(6)}, ${record.location.longitude.toFixed(6)}</p>
           <p><strong>ความแม่นยำ:</strong> ${Math.round(record.location.accuracy)} เมตร</p>
           <p><strong>การตรวจจับ:</strong> ${record.detectionMethod || 'simulation'}</p>
+          ${record.notes ? `<p><strong>บันทึกงานวันนี้:</strong> ${record.notes.replace(/</g,'&lt;')}</p>` : ''}
         </div>
         <div class="history-face">
           ${record.faceImage ? `<img src="${record.faceImage}" alt="face" />` : ''}
