@@ -105,6 +105,22 @@
     </div>
   </div>
 
+  <!-- Modal บันทึกงานตอนออกงาน -->
+  <div id="notesModal" class="modal" style="display:none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog">
+      <h3 class="modal-title">สรุปงานวันนี้ (ใส่ตอนออกงาน)</h3>
+      <p class="modal-subtitle">ตัวอย่าง: รายงานผลกิจกรรม, ประชุมกับ..., ทำเอกสาร..., พัฒนาโมดูล...</p>
+      <textarea id="checkoutNotes" class="modal-textarea" rows="6" maxlength="1000" placeholder="พิมพ์บันทึกงานวันนี้... (ไม่บังคับ)"></textarea>
+      <div class="modal-actions">
+        <button id="saveAndCheckout" class="btn modal-btn primary">บันทึก & ออกงาน</button>
+        <button id="skipAndCheckout" class="btn modal-btn">ข้าม & ออกงาน</button>
+        <button id="cancelCheckout" class="btn modal-btn secondary">ยกเลิก</button>
+      </div>
+      <div class="modal-hint"><span id="notesCount">0</span>/1000 ตัวอักษร</div>
+    </div>
+  </div>
+
   <script src="main.js"></script>
 
   <script>
