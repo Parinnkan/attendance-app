@@ -71,11 +71,14 @@
       </div>
     </div>
 
+    <!-- APP TABS -->
     <div class="main-tabs" id="appTabs" style="display:none;">
       <button class="main-tab active" data-tab="attendance">ลงเวลา</button>
       <button class="main-tab" data-tab="history">ประวัติ</button>
+      <button class="main-tab" data-tab="admin" id="adminTabBtn" style="display:none;">ผู้ดูแล</button>
     </div>
 
+    <!-- APP CONTENT -->
     <div class="main-content" id="appContent" style="display:none;">
       <!-- TAB: ลงเวลา -->
       <div id="attendanceTab">
@@ -147,15 +150,66 @@
             <button class="history-tab" data-type="check-out">ออกงาน</button>
           </div>
 
-          <!-- ตัวกรองวันที่ -->
+          <!-- ตัวกรอง -->
           <div class="history-filters">
             <label for="historyDate" class="history-date-label">เลือกวันที่:</label>
             <input type="date" id="historyDate" class="history-date-input" />
             <button class="history-action" id="historyToday">วันนี้</button>
             <button class="history-action secondary" id="historyClear">ล้าง</button>
+
+            <!-- เฉพาะแอดมิน: กรองตามอีเมล -->
+            <label id="historyEmailLabel" class="history-date-label" style="display:none;">อีเมล:</label>
+            <input id="historyEmail" type="email" class="history-date-input" placeholder="someone@email.com" style="display:none;"/>
+            <button id="historyEmailApply" class="history-action" style="display:none;">กรองอีเมล</button>
+            <button id="historyEmailClear" class="history-action secondary" style="display:none;">ล้างอีเมล</button>
           </div>
 
           <div id="attendanceHistory"></div>
+        </div>
+      </div>
+
+      <!-- TAB: ผู้ดูแล -->
+      <div id="adminTab" style="display:none;">
+        <div class="admin-section">
+          <h3>จัดการผู้ใช้</h3>
+
+          <div class="card">
+            <h4>สร้างผู้ใช้ใหม่</h4>
+            <div id="adminCreateAlert"></div>
+            <div class="form-grid">
+              <div class="form-item">
+                <label>ชื่อ</label>
+                <input id="adminFirst" type="text" placeholder="ชื่อ">
+              </div>
+              <div class="form-item">
+                <label>สกุล</label>
+                <input id="adminLast" type="text" placeholder="นามสกุล">
+              </div>
+              <div class="form-item">
+                <label>อีเมล</label>
+                <input id="adminEmail" type="email" placeholder="user@email.com">
+              </div>
+              <div class="form-item">
+                <label>รหัสผ่าน</label>
+                <input id="adminPass" type="password" placeholder="อย่างน้อย 6 ตัวอักษร">
+              </div>
+              <div class="form-item">
+                <label>สิทธิ์</label>
+                <select id="adminRole">
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            </div>
+            <button id="adminCreateBtn" class="btn w-full">สร้างผู้ใช้</button>
+          </div>
+
+          <div class="card mt-2">
+            <h4>รายการผู้ใช้</h4>
+            <div id="adminUserList"></div>
+          </div>
+
+          <p class="hint mt-2">* ลบผู้ใช้จะมีตัวเลือกให้ลบ “ประวัติการลงเวลา” ของอีเมลนั้น ๆ ด้วย</p>
         </div>
       </div>
     </div>
@@ -209,6 +263,7 @@
       function showTab(tabName) {
         document.getElementById('attendanceTab').style.display = tabName === 'attendance' ? '' : 'none';
         document.getElementById('historyTab').style.display = tabName === 'history' ? '' : 'none';
+        document.getElementById('adminTab').style.display = tabName === 'admin' ? '' : 'none';
       }
       document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.main-tab').forEach(tab => {
@@ -220,12 +275,8 @@
       });
     })();
 
-    // History sub-tab + date filter
+    // History sub-tab + date/email filter
     (function () {
-      function setActiveTab(tab) {
-        document.querySelectorAll('.history-tab').forEach(btn => btn.classList.remove('active'));
-        tab.addEventListener; tab.classList.add('active');
-      }
       function getSelectedType() {
         const active = document.querySelector('.history-tab.active');
         return active ? active.getAttribute('data-type') : 'all';
@@ -234,8 +285,10 @@
         const type = getSelectedType();
         const dateInput = document.getElementById('historyDate');
         const dateStr = dateInput && dateInput.value ? dateInput.value : null;
+        const emailEl = document.getElementById('historyEmail');
+        const email = emailEl && emailEl.value ? emailEl.value.trim() : null;
         if (window.attendanceSystem && window.attendanceSystem.loadAttendanceHistory) {
-          window.attendanceSystem.loadAttendanceHistory(type, dateStr);
+          window.attendanceSystem.loadAttendanceHistory(type, dateStr, email);
         }
       }
       document.addEventListener('DOMContentLoaded', function () {
@@ -261,6 +314,15 @@
           dateInput.value = '';
           reload();
         });
+
+        const email = document.getElementById('historyEmail');
+        const emailApply = document.getElementById('historyEmailApply');
+        const emailClear = document.getElementById('historyEmailClear');
+        if (email && emailApply && emailClear) {
+          emailApply.addEventListener('click', reload);
+          emailClear.addEventListener('click', ()=>{ email.value=''; reload(); });
+          email.addEventListener('keydown', e=>{ if(e.key==='Enter') reload(); });
+        }
       });
     })();
   </script>
